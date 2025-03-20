@@ -1,0 +1,356 @@
+`timescale 1ns / 1ps
+
+
+module mul8 (input [7:0] Y, input [7:0] U, output [15:0]PP);
+
+wire [9:0] I, J;
+wire [9:4] G;
+wire [9:2] H;
+wire [20:0] c;
+wire [3:0] YA;
+wire [8:0] Y3;
+wire [4:0] Y3A;
+
+assign YA [0]=Y[4];
+assign YA [1]=Y[5];
+assign YA [2]=Y[6];
+assign YA [3]=Y[7];
+ 
+mul3A b1 (YA, Y3A);
+mul3 b2 (Y, Y3);
+wire [5:0] a1;
+wire [7:0] a2,a4;
+wire [7:0] a3;
+wire [9:0]a5;
+wire [9:0]a6;
+wire [8:0]a7; 
+wire [11:0]a8,a9;
+
+
+PPA1 b3(U[0], U[1],Y,Y3A,G); 
+PPA2 b4(U[2], U[3],Y,Y3A,H); 
+PPA3 b5(U[4], U[5],Y,Y3,I); 
+PPA3 b6(U[6], U[7],Y,Y3,J); 
+
+
+assign PP[0]= U[0] & Y[0];
+assign PP[1]= U[0] & Y[1];
+assign PP[2]= U[0]  & Y[2];
+assign PP[3]= U[0]  & Y[3];
+
+
+// STAGE-1
+assign a1[0]=G[4];						
+assign a1[1]=G[5];
+assign a1[2]=G[6];
+assign a1[3]=G[7];
+assign a1[4]=G[8];
+assign a1[5]=G[9];
+assign a2[0]=H[2];
+assign a2[1]=H[3];
+assign a2[2]=H[4];
+assign a2[3]=H[5];
+assign a2[4]=H[6];
+assign a2[5]=H[7];
+assign a2[6]=H[8];
+assign a2[7]=H[9];
+
+stage_1 b9 (c[1],a1,a2,a3,c[2]);
+
+// STAGE-2
+
+assign a4[0]=I[2];
+assign a4[1]=I[3];
+assign a4[2]=I[4];
+assign a4[3]=I[5];
+assign a4[4]=I[6];
+assign a4[5]=I[7];
+assign a4[6]=I[8];
+assign a4[7]=I[9];
+assign a5[0]=J[0];
+assign a5[1]=J[1];
+assign a5[2]=J[2];
+assign a5[3]=J[3];
+assign a5[4]=J[4];
+assign a5[5]=J[5];
+assign a5[6]=J[6];
+assign a5[7]=J[7];
+assign a5[8]=J[8];
+assign a5[9]=J[9];
+
+stage_2 b10 (a4,a5,a6,c[3]);
+
+// FINAL STAGE
+ 
+assign a7[0]=a3[0];
+assign a7[1]=a3[1];
+assign a7[2]=a3[2];
+assign a7[3]=a3[3];
+assign a7[4]=a3[4];
+assign a7[5]=a3[5];
+assign a7[6]=a3[6];
+assign a7[7]=a3[7];
+assign a7[8]=c[2];
+
+assign a8[0]=I[0];
+assign a8[1]=I[1];
+assign a8[2]=a6[0];
+assign a8[3]=a6[1];
+assign a8[4]=a6[2];
+assign a8[5]=a6[3];
+assign a8[6]=a6[4];
+assign a8[7]=a6[5];
+assign a8[8]=a6[6];
+assign a8[9]=a6[7];
+assign a8[10]=a6[8];
+assign a8[11]=a6[9];
+
+stage_final b11 (a7,a8,a9);
+
+assign PP[4]=a9[0];
+assign PP[5]=a9[1];
+assign PP[6]=a9[2];
+assign PP[7]=a9[3];
+assign PP[8]=a9[4];
+assign PP[9]=a9[5];
+assign PP[10]=a9[6];
+assign PP[11]=a9[7];
+assign PP[12]=a9[8];
+assign PP[13]=a9[9];
+assign PP[14]=a9[10];
+assign PP[15]=a9[11];
+ 
+ endmodule
+ 
+ module mul3A (input [7:4] X, output [8:4] S2);
+ wire w1,w2,w3,w4,w5,w6,w7,w8;
+ 
+ HA u5(X[4], X[5], S2[4], w5);
+ FA u6(X[5], X[6], w5, S2[5], w6);
+ FA u7(X[6], X[7], w6, S2[6], w7);
+ HA u8(w7,X[7],S2[7],S2[8]);
+
+ 
+endmodule
+
+ module mul3 (input [7:0] X, output [8:0]S2);
+ wire w1,w2,w3,w4,w5,w6,w7,w8;
+ 
+ HA u1(X[0], X[1], S2[0], w1);
+ FA u2(X[1], X[2], w1, S2[1], w2);
+ FA u3(X[2], X[3], w2, S2[2], w3);
+ FA u4(X[3], X[4], w3, S2[3], w4);
+ FA u5(X[4], X[5], w4, S2[4], w5);
+ FA u6(X[5], X[6], w5, S2[5], w6);
+ FA u7(X[6], X[7], w6, S2[6], w7);
+ HA u8(w7,X[7],S2[7],S2[8]);
+  
+endmodule
+
+module stage_1 (input cin, input [5:0]X ,input [7:0]Y, output [7:0]S, output co);
+ wire w1,w2,w3,w4,w5,w6,w7;
+ 
+ 
+ xor (S[0],X[0],Y[0]);
+ xor (S[1],X[1],Y[1]);
+ xor (S[2],X[2],Y[2]);
+ 
+ HA u4(X[3], Y[3], S[3], w4);
+ FA u5(X[4], Y[4], w4, S[4], w5);
+ FA u6(X[5], Y[5], w5, S[5], w6);
+ HA u7(Y[6], w6, S[6], w7);
+ HA u8(Y[7], w7, S[7], co);
+endmodule
+
+module stage_2 (input [7:0]X ,input [9:0]Y, output [9:0]S, output co);
+ wire w1,w2,w3,w4,w5,w6,w7,w8,w9;
+ 
+ HA u1(X[0], Y[0], S[0], w1);
+ FA u2(X[1], Y[1], w1, S[1], w2);
+ FA u3(X[2], Y[2], w2, S[2], w3);
+ FA u4(X[3], Y[3], w3, S[3], w4);
+ FA u5(X[4], Y[4], w4, S[4], w5);
+ FA u6(X[5], Y[5], w5, S[5], w6);
+ FA u7(X[6], Y[6], w6, S[6], w7);
+ FA u8(X[7], Y[7], w7, S[7], w8);
+ HA u9(Y[8], w8, S[8], w9);
+ HA u10(Y[9], w9, S[9], co);
+endmodule
+
+
+module stage_final (input [8:0] X, input [11:0] Y, output [11:0]S);
+ wire w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12;
+ 
+ HA u1(X[0], Y[0], S[0], w1);
+ FA u2(X[1], Y[1], w1, S[1], w2);
+ FA u3(X[2], Y[2], w2, S[2], w3);
+ FA u4(X[3], Y[3], w3, S[3], w4);
+ FA u5(X[4], Y[4], w4, S[4], w5);
+ FA u6(X[5], Y[5], w5, S[5], w6);
+ FA u7(X[6], Y[6], w6, S[6], w7);
+ FA u8(X[7], Y[7], w7, S[7], w8);
+ FA u9(X[8], Y[8], w8, S[8], w9);
+ HA u10( Y[9], w9, S[9], w10);
+ HA u11(Y[10], w10, S[10], w11);
+xor u12(S[11],Y[11], w11);
+  
+endmodule
+
+
+module PPA1(input u0, u1, input[7:0]yi,input [8:4]y3i ,output [9:4]PPA1i);
+  wire x,x2,x3,u00,u11;
+  wire [7:0]w1,w2,w3,t;
+  
+not (u00,u0); not (u11, u1); and (x, u0, u11); and (x2, u00, u1); and (x3, u0, u1);
+or (x_3x, x,x3);
+
+
+  
+	
+ genvar g;
+  generate
+    for(g=3; g<4; g=g+1)  			//2nd to 5th
+    begin
+    and n10(w1[g], yi[g+1], x_3x);
+    and n21(w2[g], yi[g], x2);
+    or n41(t[g], w1[g], w2[g]);
+    end
+  endgenerate
+   
+  
+  generate
+    for(g=4; g<7; g=g+1)  			//6th to 9th
+    begin
+    and n1(w1[g], yi[g+1], x);
+    and n2(w2[g], yi[g], x2);
+    and n3(w3[g], y3i[g],x3);
+    or n4(t[g], w1[g], w2[g], w3[g]);
+    end
+  endgenerate
+    
+									//9th
+    and n5(w1[7], yi[7],x2);
+    and n6(w2[7], y3i[7],x3);
+    or n7(t[7], w1[7], w2[7]);
+									//10th
+	and n8 (PPA1i[9],y3i[8],x3);
+  
+
+assign PPA1i[4]=t[3];
+assign PPA1i[5]=t[4];
+assign PPA1i[6]=t[5];
+assign PPA1i[7]=t[6];
+assign PPA1i[8]=t[7];
+
+endmodule
+module PPA2(input u0, u1, input[7:0]yi,input [8:4]y3i ,output [9:2]PPA1i);
+  wire x,x2,x3,u00,u11;
+  wire [7:0]w1,w2,w3,t;
+  
+not (u00,u0); not (u11, u1); and (x, u0, u11); and (x2, u00, u1); and (x3, u0, u1);
+or (x_3x, x,x3);
+
+
+  
+	
+ genvar g;
+  generate
+    for(g=1; g<4; g=g+1)  			//2nd to 5th
+    begin
+    and n10(w1[g], yi[g+1], x_3x);
+    and n21(w2[g], yi[g], x2);
+    or n41(t[g], w1[g], w2[g]);
+    end
+  endgenerate
+   
+  
+  generate
+    for(g=4; g<7; g=g+1)  			//6th to 9th
+    begin
+    and n1(w1[g], yi[g+1], x);
+    and n2(w2[g], yi[g], x2);
+    and n3(w3[g], y3i[g],x3);
+    or n4(t[g], w1[g], w2[g], w3[g]);
+    end
+  endgenerate
+    
+									//9th
+    and n5(w1[7], yi[7],x2);
+    and n6(w2[7], y3i[7],x3);
+    or n7(t[7], w1[7], w2[7]);
+									//10th
+	and n8 (PPA1i[9],y3i[8],x3);
+  
+
+assign PPA1i[2]=t[1];
+assign PPA1i[3]=t[2];
+assign PPA1i[4]=t[3];
+assign PPA1i[5]=t[4];
+assign PPA1i[6]=t[5];
+assign PPA1i[7]=t[6];
+assign PPA1i[8]=t[7];
+
+endmodule
+
+module PPA3(input u0, u1, input[7:0]yi,input [8:0]y3i ,output [9:0]PPA1i);
+  wire x,x2,x3,u00,u11;
+  wire [7:0]w1,w2,w3,t;
+  
+not (u00,u0); not (u11, u1); and (x, u0, u11); and (x2, u00, u1); and (x3, u0, u1);
+  
+   wire w11,w12,w13,w14;
+    and n11(w11, yi[0],x);
+    and n12(w12, yi[0],x3);
+    or n13(PPA1i[0], w11, w12);
+   
+  genvar g;
+  generate
+    for(g=0; g<7; g=g+1)  //2nd to 8th
+    begin
+    and n1(w1[g], yi[g+1], x);
+    and n2(w2[g], yi[g], x2);
+    and n3(w3[g], y3i[g],x3);
+    or n4(t[g], w1[g], w2[g], w3[g]);
+    end
+  endgenerate
+    
+									//9th
+    and n5(w1[7], yi[7],x2);
+    and n6(w2[7], y3i[7],x3);
+    or n7(t[7], w1[7], w2[7]);
+	
+	and n8 (PPA1i[9],y3i[8],x3);
+  
+assign PPA1i[1]=t[0];
+assign PPA1i[2]=t[1];
+assign PPA1i[3]=t[2];
+assign PPA1i[4]=t[3];
+assign PPA1i[5]=t[4];
+assign PPA1i[6]=t[5];
+assign PPA1i[7]=t[6];
+assign PPA1i[8]=t[7];
+
+endmodule
+
+module FA(input A, B, C, output si, ci);
+  wire w1, w2, w3;
+  xor(w1, A, B);
+  and(w2, A, B);
+  xor (si,w1,C);
+  and (w3,w1,C);
+  or (ci,w2,w3);
+  endmodule
+
+module HA(input A, B, output si, ci);
+  wire w1, w2, w3;
+  xor(si, A, B);
+  and(ci, A, B);
+  endmodule
+
+module FAA(input A, B, C, output si, ci);
+  wire w1, w2, w3;
+  or(w1, A, B);
+  or (si,w1,C);
+  and (ci,B,C);
+  endmodule
+  

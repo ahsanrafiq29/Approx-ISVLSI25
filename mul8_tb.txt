@@ -1,0 +1,93 @@
+
+`timescale 1ns/1ps
+`include  "/home/ahsan/frontend/freepdk-45nm-master/stdcells.v"
+
+//FOR UNSIGNED MULTIPLIERS
+
+module mul8_tb (); 
+
+
+integer index_one, index_two;
+reg [7:0] sel [0:255];
+   
+
+reg     [7:0]  A,B;
+wire    [15:0] O;
+
+
+integer fid;
+
+initial begin
+  $readmemb("mul8_tb.in", sel);
+   
+  fid = $fopen("mul8_tb.out","w");
+
+  for (index_one=0; index_one<256; index_one=index_one+1) begin
+    A = sel[index_one][7:0];
+    for (index_two=0; index_two<256; index_two=index_two+1) begin
+        B = sel[index_two][7:0];
+        #10;
+         $fwrite(fid,"%d\n",O);
+    end
+  end
+ 
+  $fclose(fid);
+  $stop;  
+end
+
+mul8 mul8 (
+  .Y(A),
+  .U(B),
+  .PP(O)
+);
+
+endmodule
+
+
+
+
+/*
+
+`timescale 1ns/1ps
+`include  "/home/ahsan/frontend/freepdk-45nm-master/stdcells.v"
+
+//FOR SIGNED MULTIPLIERS
+module mul8_tb (); 
+
+
+integer index_one, index_two;
+reg [7:0] sel [0:255];
+   
+
+reg    signed [7:0]  A,B;
+wire    signed [15:0] O;
+
+
+integer fid;
+
+initial begin
+  $readmemb("mul8s_tb.in", sel);
+   
+  fid = $fopen("mul8_tb.out","w");
+  for (index_one=0; index_one<256; index_one=index_one+1) begin
+    A = sel[index_one][7:0];
+    for (index_two=0; index_two<256; index_two=index_two+1) begin
+        B = sel[index_two][7:0];
+        #10;
+         $fwrite(fid,"%d\n",O);
+    end
+  end
+ 
+  $fclose(fid);
+  $stop;  
+end
+
+mul8 mul8 (
+  .x(A),
+  .y(B),
+  .p(O)
+);
+
+endmodule
+
+*/

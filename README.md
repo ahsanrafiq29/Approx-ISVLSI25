@@ -1,4 +1,4 @@
-# Approx_ISVLI25
+# Approx_ISVLSI25
 
 This repository is used to generate all the files used in ISVLIS 2025.
 I have provided 
